@@ -76,12 +76,8 @@ def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_b
         if benchmark == 0:
             return 100 if value > 0 else 40
         ratio = value / benchmark if benchmark != 0 else 0
-        if ratio >= 1.5:
-            return 100
-        elif ratio <= 0.5:
-            return 40
-        else:
-            return 40 + (ratio - 0.5) * 60
+        # Mapeamento linear: 0.5x → 40, 1.5x → 100, >1.5x → acima de 100 (sem teto)
+        return 40 + (ratio - 0.5) * 60
     else:
         return (value / benchmark) * 100 if benchmark != 0 else 0
 
@@ -127,7 +123,8 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
             low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better')
             high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better')
 
-        purple_normalized.append(min(100, purple_norm))
+        # Startup pode exceder 100 para não “colar” no limite quando for muito acima do benchmark
+        purple_normalized.append(purple_norm)
         napkin_low_normalized.append(min(100, low_norm))
         napkin_high_normalized.append(min(100, high_norm))
 
@@ -142,14 +139,17 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
     napkin_high_plot = napkin_high_normalized + [napkin_high_normalized[0]]
     angles += angles[:1]
 
-    ax.set_ylim(0, 100)
+    # Ajuste dinâmico do limite radial para acomodar valores > 100
+    dynamic_max = max(100, max(purple_normalized + napkin_low_normalized + napkin_high_normalized))
+    y_max = dynamic_max + 5  # pequena margem visual
+    ax.set_ylim(0, y_max)
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
 
     ax.set_yticklabels([])
     ax.grid(True, color='#E0E0E0', linestyle='-', linewidth=1.2, alpha=0.6)
     theta_circle = np.linspace(0, 2*np.pi, 200)
-    r_circle = np.full_like(theta_circle, 100)
+    r_circle = np.full_like(theta_circle, y_max)
     ax.plot(theta_circle, r_circle, color='#C0C0C0', linewidth=2.5, alpha=0.7, zorder=1)
 
     # Área entre Low e High

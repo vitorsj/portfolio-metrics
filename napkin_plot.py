@@ -39,12 +39,8 @@ def _normalize_value(value: float, benchmark: float, metric_type: str = "higher_
         if benchmark == 0:
             return 100 if value > 0 else 40
         ratio = value / benchmark if benchmark != 0 else 0
-        if ratio >= 1.5:
-            return 100
-        elif ratio <= 0.5:
-            return 40
-        else:
-            return 40 + (ratio - 0.5) * 60
+        # Mapeamento linear aberto acima de 1.5x
+        return 40 + (ratio - 0.5) * 60
     else:
         return (value / benchmark) * 100 if benchmark != 0 else 0
 
