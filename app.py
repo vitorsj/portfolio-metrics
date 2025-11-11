@@ -151,33 +151,22 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 
     for metric in metrics:
         benchmark_mid = (napkin_low[metric] + napkin_high[metric]) / 2
-        if per_metric_scale:
-            # Escala dinâmica por métrica: eixo [min(napkin_low, startup), max(napkin_high, startup)]
-            if napkin_low[metric] == napkin_high[metric]:
-                axis_min = 0.0
-                axis_max = max(napkin_high[metric], startup_metrics[metric])
-            else:
-                axis_min = min(napkin_low[metric], startup_metrics[metric])
-                axis_max = max(napkin_high[metric], startup_metrics[metric])
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
-                                          low=napkin_low[metric], high=napkin_high[metric],
-                                          axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
-                                       low=napkin_low[metric], high=napkin_high[metric],
-                                       axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
-                                        low=napkin_low[metric], high=napkin_high[metric],
-                                        axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        # Escala dinâmica por métrica: eixo [min(napkin_low, startup), max(napkin_high, startup)]
+        if napkin_low[metric] == napkin_high[metric]:
+            axis_min = 0.0
+            axis_max = max(napkin_high[metric], startup_metrics[metric])
         else:
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
-                                          low=napkin_low[metric], high=napkin_high[metric],
-                                          per_metric_scale=False)
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
-                                       low=napkin_low[metric], high=napkin_high[metric],
-                                       per_metric_scale=False)
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
-                                        low=napkin_low[metric], high=napkin_high[metric],
-                                        per_metric_scale=False)
+            axis_min = min(napkin_low[metric], startup_metrics[metric])
+            axis_max = max(napkin_high[metric], startup_metrics[metric])
+        purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                      low=napkin_low[metric], high=napkin_high[metric],
+                                      axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                   low=napkin_low[metric], high=napkin_high[metric],
+                                   axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                    low=napkin_low[metric], high=napkin_high[metric],
+                                    axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
 
         # Mantemos escala fixa 0..100 para preservar proporções entre métricas
         purple_normalized.append(min(100, purple_norm))
@@ -381,15 +370,11 @@ st.markdown(
 )
 
 # Layout: nome da startup, estágio e inputs
-c_name, c_stage, c_scale = st.columns([2, 1.1, 0.9])
+c_name, c_stage = st.columns([2, 1.1])
 with c_name:
     col_name = st.text_input("Nome da startup", value="Startup")
 with c_stage:
     stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0)
-with c_scale:
-    st.write("")  # spacing
-    st.write("")  # spacing
-    per_metric_scale = st.checkbox("Escala por métrica", value=True, help="Cada métrica usa seu próprio min/max (Napkin vs Startup).")
 selected_bench = NAPKIN_BENCHMARKS[stage]
 napkin_low = selected_bench['low']
 napkin_high = selected_bench['high']
