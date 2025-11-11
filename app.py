@@ -88,6 +88,10 @@ def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_b
     # Salvaguardas
     low_val = 0.0 if low is None else float(low)
     high_val = benchmark if high is None else float(high)
+    # Caso low==high: tratar como banda ancorada em 0 para evitar distorção (ex.: percentuais)
+    if low is not None and high is not None and float(low) == float(high):
+        low_val = 0.0
+        high_val = float(high)
 
     # Caso degenerado: sem banda (ex.: Growth Pre-Seed com low==high==0)
     if high_val <= 0:
@@ -149,8 +153,12 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
         benchmark_mid = (napkin_low[metric] + napkin_high[metric]) / 2
         if per_metric_scale:
             # Escala dinâmica por métrica: eixo [min(napkin_low, startup), max(napkin_high, startup)]
-            axis_min = min(napkin_low[metric], startup_metrics[metric])
-            axis_max = max(napkin_high[metric], startup_metrics[metric])
+            if napkin_low[metric] == napkin_high[metric]:
+                axis_min = 0.0
+                axis_max = max(napkin_high[metric], startup_metrics[metric])
+            else:
+                axis_min = min(napkin_low[metric], startup_metrics[metric])
+                axis_max = max(napkin_high[metric], startup_metrics[metric])
             purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
                                           low=napkin_low[metric], high=napkin_high[metric],
                                           axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)

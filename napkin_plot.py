@@ -47,6 +47,10 @@ def _normalize_value(
 
     low_val = 0.0 if low is None else float(low)
     high_val = benchmark if high is None else float(high)
+    # Caso low==high: ancorar a 0 para evitar distorção (ex.: percentuais)
+    if low is not None and high is not None and float(low) == float(high):
+        low_val = 0.0
+        high_val = float(high)
 
     if high_val <= 0:
         return 100 if value > 0 else 40
