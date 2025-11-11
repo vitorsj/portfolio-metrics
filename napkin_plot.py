@@ -30,19 +30,41 @@ plt.rcParams["font.sans-serif"] = [
 ]
 
 
-def _normalize_value(value: float, benchmark: float, metric_type: str = "higher_better") -> float:
+def _normalize_value(
+    value: float,
+    benchmark: float,
+    metric_type: str = "higher_better",
+    *,
+    low: float | None = None,
+    high: float | None = None,
+) -> float:
     """
-    Normaliza valores para escala 0-100.
-    Regra: o benchmark sempre recebe score 70 (referência média).
+    Normaliza valores 0-100 usando a faixa Napkin:
+    - Low -> ~60; High -> ~80; abaixo de Low em [40,60), acima de High em (80,100] com compressão log.
     """
-    if metric_type == "higher_better":
-        if benchmark == 0:
-            return 100 if value > 0 else 40
-        ratio = value / benchmark if benchmark != 0 else 0
-        # Mapeamento linear aberto acima de 1.5x
-        return 40 + (ratio - 0.5) * 60
-    else:
+    if metric_type != "higher_better":
         return (value / benchmark) * 100 if benchmark != 0 else 0
+
+    low_val = 0.0 if low is None else float(low)
+    high_val = benchmark if high is None else float(high)
+
+    if high_val <= 0:
+        return 100 if value > 0 else 40
+
+    if low_val <= 0:
+        if value <= 0:
+            return 40
+        if value <= high_val:
+            return 40 + 40 * (value / high_val)
+        over = value / high_val
+        return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
+
+    if value <= low_val:
+        return 40 + 20 * (max(value, 0.0) / low_val)
+    if value < high_val:
+        return 60 + 20 * ((value - low_val) / (high_val - low_val))
+    over = value / high_val
+    return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
 
 
 def _check_label_overlap(purple_value: float, napkin_value: float, threshold: float = 12):
@@ -95,9 +117,27 @@ def build_figure(
             l_val = _normalize_value(napkin_low[metric], benchmark, "percentage")
             h_val = _normalize_value(napkin_high[metric], benchmark, "percentage")
         else:
-            p_val = _normalize_value(startup_metrics[metric], benchmark, "higher_better")
-            l_val = _normalize_value(napkin_low[metric], benchmark, "higher_better")
-            h_val = _normalize_value(napkin_high[metric], benchmark, "higher_better")
+            p_val = _normalize_value(
+                startup_metrics[metric],
+                benchmark,
+                "higher_better",
+                low=napkin_low[metric],
+                high=napkin_high[metric],
+            )
+            l_val = _normalize_value(
+                napkin_low[metric],
+                benchmark,
+                "higher_better",
+                low=napkin_low[metric],
+                high=napkin_high[metric],
+            )
+            h_val = _normalize_value(
+                napkin_high[metric],
+                benchmark,
+                "higher_better",
+                low=napkin_low[metric],
+                high=napkin_high[metric],
+            )
 
         purple_normalized.append(min(100, p_val))
         napkin_low_normalized.append(min(100, l_val))

@@ -66,20 +66,44 @@ metric_labels = ['ARR', 'Growth', 'Round Size', 'Cap Table', 'Valuation', 'Gross
 # -------------------------------
 # Normalização e utilitários
 # -------------------------------
-def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_better') -> float:
+def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_better',
+                    low: float | None = None, high: float | None = None) -> float:
     """
-    Normaliza valores para escala 0-100.
-    Para métricas 'higher_better', 70 é a referência (benchmark médio).
+    Normaliza valores para escala 0-100 usando a faixa Napkin:
+    - Low -> ~60; High -> ~80; abaixo de Low mapeia para [40,60), acima de High para (80,100] com compressão log.
+    Mantém escala fixa 0-100 para não distorcer outras métricas.
     """
-    if metric_type == 'higher_better':
-        # Caso especial: benchmark zero → qualquer valor positivo deve ir ao topo
-        if benchmark == 0:
-            return 100 if value > 0 else 40
-        ratio = value / benchmark if benchmark != 0 else 0
-        # Mapeamento linear: 0.5x → 40, 1.5x → 100, >1.5x → acima de 100 (sem teto)
-        return 40 + (ratio - 0.5) * 60
-    else:
+    if metric_type != 'higher_better':
         return (value / benchmark) * 100 if benchmark != 0 else 0
+
+    # Salvaguardas
+    low_val = 0.0 if low is None else float(low)
+    high_val = benchmark if high is None else float(high)
+
+    # Caso degenerado: sem banda (ex.: Growth Pre-Seed com low==high==0)
+    if high_val <= 0:
+        return 100 if value > 0 else 40
+
+    # Se low==0, use high como referência da banda [40..80]
+    if low_val <= 0:
+        if value <= 0:
+            return 40
+        if value <= high_val:
+            # 0 -> 40 ; high -> 80
+            return 40 + 40 * (value / high_val)
+        # Acima do high: 80..100 com compressão log
+        over = value / high_val
+        return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))  # 10x -> ~100
+
+    # Faixa regular: abaixo de low
+    if value <= low_val:
+        return 40 + 20 * (max(value, 0.0) / low_val)
+    # Entre low e high
+    if value < high_val:
+        return 60 + 20 * ((value - low_val) / (high_val - low_val))
+    # Acima de high: compressão log até 100
+    over = value / high_val
+    return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
 
 
 def check_label_overlap(purple_value: float, napkin_value: float, threshold: float = 12):
@@ -119,12 +143,15 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
             low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'percentage')
             high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'percentage')
         else:
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better')
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better')
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better')
+            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                          low=napkin_low[metric], high=napkin_high[metric])
+            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                       low=napkin_low[metric], high=napkin_high[metric])
+            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                        low=napkin_low[metric], high=napkin_high[metric])
 
-        # Startup pode exceder 100 para não “colar” no limite quando for muito acima do benchmark
-        purple_normalized.append(purple_norm)
+        # Mantemos escala fixa 0..100 para preservar proporções entre métricas
+        purple_normalized.append(min(100, purple_norm))
         napkin_low_normalized.append(min(100, low_norm))
         napkin_high_normalized.append(min(100, high_norm))
 
@@ -139,17 +166,15 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
     napkin_high_plot = napkin_high_normalized + [napkin_high_normalized[0]]
     angles += angles[:1]
 
-    # Ajuste dinâmico do limite radial para acomodar valores > 100
-    dynamic_max = max(100, max(purple_normalized + napkin_low_normalized + napkin_high_normalized))
-    y_max = dynamic_max + 5  # pequena margem visual
-    ax.set_ylim(0, y_max)
+    # Escala fixa
+    ax.set_ylim(0, 100)
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
 
     ax.set_yticklabels([])
     ax.grid(True, color='#E0E0E0', linestyle='-', linewidth=1.2, alpha=0.6)
     theta_circle = np.linspace(0, 2*np.pi, 200)
-    r_circle = np.full_like(theta_circle, y_max)
+    r_circle = np.full_like(theta_circle, 100)
     ax.plot(theta_circle, r_circle, color='#C0C0C0', linewidth=2.5, alpha=0.7, zorder=1)
 
     # Área entre Low e High
