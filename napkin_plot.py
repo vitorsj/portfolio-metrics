@@ -72,11 +72,12 @@ DEFAULT_METRIC_ORDER = ["ARR", "Growth", "Round Size", "Cap Table", "Valuation",
 
 
 def build_figure(
-    purple_metrics: dict,
+    startup_metrics: dict,
     napkin_low: dict,
     napkin_high: dict,
     *,
     metric_order: list | None = None,
+    startup_name: str = "Startup",
 ) -> Figure:
     """
     Constrói e retorna a Figure do gráfico radar no tema Astella.
@@ -92,11 +93,11 @@ def build_figure(
     for metric in order:
         benchmark = (napkin_low[metric] + napkin_high[metric]) / 2
         if metric == "Cap Table":
-            p_val = _normalize_value(purple_metrics[metric], benchmark, "percentage")
+            p_val = _normalize_value(startup_metrics[metric], benchmark, "percentage")
             l_val = _normalize_value(napkin_low[metric], benchmark, "percentage")
             h_val = _normalize_value(napkin_high[metric], benchmark, "percentage")
         else:
-            p_val = _normalize_value(purple_metrics[metric], benchmark, "higher_better")
+            p_val = _normalize_value(startup_metrics[metric], benchmark, "higher_better")
             l_val = _normalize_value(napkin_low[metric], benchmark, "higher_better")
             h_val = _normalize_value(napkin_high[metric], benchmark, "higher_better")
 
@@ -248,17 +249,17 @@ def build_figure(
         ax.plot(angle, value, "o", color=COLORS["turquoise"], markersize=18, alpha=0.35, zorder=4.5)
 
         if metric == "ARR":
-            label_text = f'${purple_metrics["ARR"]}M'
+            label_text = f'${startup_metrics["ARR"]}M'
         elif metric == "Growth":
-            label_text = f'{purple_metrics["Growth"]}%'
+            label_text = f'{startup_metrics["Growth"]}%'
         elif metric == "Round Size":
-            label_text = f'${purple_metrics["Round Size"]}M'
+            label_text = f'${startup_metrics["Round Size"]}M'
         elif metric == "Valuation":
-            label_text = f'${purple_metrics["Valuation"]}M'
+            label_text = f'${startup_metrics["Valuation"]}M'
         elif metric == "Cap Table":
-            label_text = f'{purple_metrics["Cap Table"]}%'
+            label_text = f'{startup_metrics["Cap Table"]}%'
         else:
-            label_text = f'{int(purple_metrics["Gross Margin"])}%'
+            label_text = f'{int(startup_metrics["Gross Margin"])}%'
 
         ax.text(
             angle,
@@ -313,7 +314,7 @@ def build_figure(
     legend_y = 0.09
     legend_x_start = 0.18
 
-    # Purple Metrics
+    # Série principal (Startup)
     fig.patches.append(
         plt.Rectangle(
             (legend_x_start, legend_y),
@@ -328,7 +329,7 @@ def build_figure(
     fig.text(
         legend_x_start + 0.035,
         legend_y + 0.006,
-        "Purple Metrics",
+        f"{startup_name} Metrics",
         transform=fig.transFigure,
         fontsize=16,
         fontweight="700",

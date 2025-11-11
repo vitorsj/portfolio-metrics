@@ -1,129 +1,15 @@
 import io
 import streamlit as st
-from napkin_plot import build_figure
 
 
 st.set_page_config(page_title="Napkin Radar - Astella", page_icon="📈", layout="wide")
 
 st.title("Napkin Radar - Astella")
-st.caption("Ajuste os valores e gere o gráfico radar conforme o benchmark Napkin.")
-
-# Valores padrão (iguais aos do script original)
-DEFAULT_PURPLE = {
-    "ARR": 1.1,            # $M
-    "Growth": 389,         # %
-    "Round Size": 3.5,     # $M
-    "Valuation": 13.0,     # $M
-    "Cap Table": 72,       # %
-    "Gross Margin": 82,    # %
-}
-
-DEFAULT_LOW = {
-    "ARR": 0.64,
-    "Growth": 200,
-    "Round Size": 1.46,
-    "Valuation": 5.86,
-    "Cap Table": 80,
-    "Gross Margin": 70,
-}
-
-DEFAULT_HIGH = {
-    "ARR": 1.83,
-    "Growth": 200,
-    "Round Size": 3.66,
-    "Valuation": 10.9,
-    "Cap Table": 80,
-    "Gross Margin": 70,
-}
-
-
-with st.sidebar:
-    st.header("Parâmetros Purple Metrics")
-    arr = st.number_input("ARR (em M$)", value=float(DEFAULT_PURPLE["ARR"]), step=0.05, format="%.2f", min_value=0.0)
-    growth = st.number_input("Growth (%)", value=int(DEFAULT_PURPLE["Growth"]), step=5, min_value=0, max_value=10000)
-    round_size = st.number_input("Round Size (em M$)", value=float(DEFAULT_PURPLE["Round Size"]), step=0.1, format="%.2f", min_value=0.0)
-    valuation = st.number_input("Valuation (em M$)", value=float(DEFAULT_PURPLE["Valuation"]), step=0.5, format="%.2f", min_value=0.0)
-    cap_table = st.number_input("Cap Table (%)", value=int(DEFAULT_PURPLE["Cap Table"]), step=1, min_value=0, max_value=100)
-    gross_margin = st.number_input("Gross Margin (%)", value=int(DEFAULT_PURPLE["Gross Margin"]), step=1, min_value=0, max_value=100)
-
-    st.markdown("---")
-    with st.expander("Ajustar Napkin Benchmarks (opcional)"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("Napkin Low")
-            low_arr = st.number_input("Low ARR (M$)", value=float(DEFAULT_LOW["ARR"]), step=0.05, key="low_arr")
-            low_growth = st.number_input("Low Growth (%)", value=int(DEFAULT_LOW["Growth"]), step=5, key="low_growth")
-            low_round = st.number_input("Low Round Size (M$)", value=float(DEFAULT_LOW["Round Size"]), step=0.05, key="low_round")
-            low_valuation = st.number_input("Low Valuation (M$)", value=float(DEFAULT_LOW["Valuation"]), step=0.05, key="low_valuation")
-            low_cap_table = st.number_input("Low Cap Table (%)", value=int(DEFAULT_LOW["Cap Table"]), step=1, min_value=0, max_value=100, key="low_cap_table")
-            low_gm = st.number_input("Low Gross Margin (%)", value=int(DEFAULT_LOW["Gross Margin"]), step=1, min_value=0, max_value=100, key="low_gm")
-        with col2:
-            st.subheader("Napkin High")
-            high_arr = st.number_input("High ARR (M$)", value=float(DEFAULT_HIGH["ARR"]), step=0.05, key="high_arr")
-            high_growth = st.number_input("High Growth (%)", value=int(DEFAULT_HIGH["Growth"]), step=5, key="high_growth")
-            high_round = st.number_input("High Round Size (M$)", value=float(DEFAULT_HIGH["Round Size"]), step=0.05, key="high_round")
-            high_valuation = st.number_input("High Valuation (M$)", value=float(DEFAULT_HIGH["Valuation"]), step=0.05, key="high_valuation")
-            high_cap_table = st.number_input("High Cap Table (%)", value=int(DEFAULT_HIGH["Cap Table"]), step=1, min_value=0, max_value=100, key="high_cap_table")
-            high_gm = st.number_input("High Gross Margin (%)", value=int(DEFAULT_HIGH["Gross Margin"]), step=1, min_value=0, max_value=100, key="high_gm")
-
-    st.markdown("---")
-    generate = st.button("Gerar gráfico")
-
-# Monta dicionários a partir dos inputs
-purple = {
-    "ARR": float(arr),
-    "Growth": int(growth),
-    "Round Size": float(round_size),
-    "Valuation": float(valuation),
-    "Cap Table": int(cap_table),
-    "Gross Margin": int(gross_margin),
-}
-
-low = {
-    "ARR": float(st.session_state.get("low_arr", DEFAULT_LOW["ARR"])),
-    "Growth": int(st.session_state.get("low_growth", DEFAULT_LOW["Growth"])),
-    "Round Size": float(st.session_state.get("low_round", DEFAULT_LOW["Round Size"])),
-    "Valuation": float(st.session_state.get("low_valuation", DEFAULT_LOW["Valuation"])),
-    "Cap Table": int(st.session_state.get("low_cap_table", DEFAULT_LOW["Cap Table"])),
-    "Gross Margin": int(st.session_state.get("low_gm", DEFAULT_LOW["Gross Margin"])),
-}
-
-high = {
-    "ARR": float(st.session_state.get("high_arr", DEFAULT_HIGH["ARR"])),
-    "Growth": int(st.session_state.get("high_growth", DEFAULT_HIGH["Growth"])),
-    "Round Size": float(st.session_state.get("high_round", DEFAULT_HIGH["Round Size"])),
-    "Valuation": float(st.session_state.get("high_valuation", DEFAULT_HIGH["Valuation"])),
-    "Cap Table": int(st.session_state.get("high_cap_table", DEFAULT_HIGH["Cap Table"])),
-    "Gross Margin": int(st.session_state.get("high_gm", DEFAULT_HIGH["Gross Margin"])),
-}
-
-
-placeholder = st.empty()
-download_col, _ = st.columns([1, 3])
-
-if generate:
-    fig = build_figure(purple, low, high)
-    with placeholder:
-        st.pyplot(fig, use_container_width=True)
-
-    # Download como PNG
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none", pad_inches=0.3)
-    buf.seek(0)
-    with download_col:
-        st.download_button(
-            label="Baixar PNG",
-            data=buf,
-            file_name="purple_metrics_radar_astella.png",
-            mime="image/png",
-        )
-else:
-    st.info("Configure os parâmetros na esquerda e clique em “Gerar gráfico”.")
+st.caption("Defina os dados da sua startup e visualize a comparação com o benchmark Napkin.")
 
 import io
 import numpy as np
 import matplotlib.pyplot as plt
-import streamlit as st
 
 
 # -------------------------------
