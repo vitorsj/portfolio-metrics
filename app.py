@@ -50,8 +50,8 @@ NAPKIN_BENCHMARKS = {
         'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
     },
     'Series A': {
-        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
-        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+        'low':   {'ARR': 3.300, 'Growth': 150, 'Round Size': 4.580, 'Valuation': 13.730, 'Cap Table': 65, 'Gross Margin': 70},
+        'high':  {'ARR': 5.490, 'Growth': 150, 'Round Size': 9.150, 'Valuation': 36.620, 'Cap Table': 65, 'Gross Margin': 70},
     },
     'Series B': {
         'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
