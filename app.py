@@ -129,7 +129,6 @@ import streamlit as st
 # -------------------------------
 # Configuração de página e fontes
 # -------------------------------
-st.set_page_config(page_title="Astella - Portfolio Metrics (Napkin Radar)", layout="wide")
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['Open Sans', 'Intelo', 'Montserrat', 'Arial', 'Helvetica', 'DejaVu Sans']
 
