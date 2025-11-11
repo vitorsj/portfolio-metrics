@@ -54,8 +54,8 @@ NAPKIN_BENCHMARKS = {
         'high':  {'ARR': 5.490, 'Growth': 150, 'Round Size': 9.150, 'Valuation': 36.620, 'Cap Table': 65, 'Gross Margin': 70},
     },
     'Series B': {
-        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
-        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+        'low':   {'ARR': 9.150, 'Growth': 100, 'Round Size': 13.730, 'Valuation': 45.700, 'Cap Table': 50, 'Gross Margin': 70},
+        'high':  {'ARR': 36.620, 'Growth': 100, 'Round Size': 27.450, 'Valuation': 91.550, 'Cap Table': 50, 'Gross Margin': 70},
     },
 }
 
