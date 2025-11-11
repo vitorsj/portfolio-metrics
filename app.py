@@ -38,24 +38,25 @@ COLORS = {
 
 
 # -------------------------------
-# Benchmarks do Napkin (fixos)
+# Benchmarks do Napkin por estágio
 # -------------------------------
-napkin_low = {
-    'ARR': 0.64,
-    'Growth': 200,
-    'Round Size': 1.46,
-    'Valuation': 5.86,
-    'Cap Table': 80,
-    'Gross Margin': 70,
-}
-
-napkin_high = {
-    'ARR': 1.83,
-    'Growth': 200,
-    'Round Size': 3.66,
-    'Valuation': 10.9,
-    'Cap Table': 80,
-    'Gross Margin': 70,
+NAPKIN_BENCHMARKS = {
+    'Pre-Seed': {
+        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
+        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+    },
+    'Seed': {
+        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
+        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+    },
+    'Series A': {
+        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
+        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+    },
+    'Series B': {
+        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
+        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+    },
 }
 
 metrics = ['ARR', 'Growth', 'Round Size', 'Cap Table', 'Valuation', 'Gross Margin']
@@ -310,10 +311,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Layout moderno com duas colunas de entrada e abas para exibição
-c_name, _, _ = st.columns([2, 1, 1])
+# Layout: nome da startup, estágio e inputs
+c_name, c_stage, _ = st.columns([2, 1.3, 0.7])
 with c_name:
     col_name = st.text_input("Nome da startup", value="Startup")
+with c_stage:
+    stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0)
+selected_bench = NAPKIN_BENCHMARKS[stage]
+napkin_low = selected_bench['low']
+napkin_high = selected_bench['high']
 
 c1, c2, c3 = st.columns(3)
 with c1:
