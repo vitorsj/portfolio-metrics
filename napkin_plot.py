@@ -36,6 +36,8 @@ def _normalize_value(value: float, benchmark: float, metric_type: str = "higher_
     Regra: o benchmark sempre recebe score 70 (referência média).
     """
     if metric_type == "higher_better":
+        if benchmark == 0:
+            return 100 if value > 0 else 40
         ratio = value / benchmark if benchmark != 0 else 0
         if ratio >= 1.5:
             return 100

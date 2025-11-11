@@ -72,6 +72,9 @@ def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_b
     Para métricas 'higher_better', 70 é a referência (benchmark médio).
     """
     if metric_type == 'higher_better':
+        # Caso especial: benchmark zero → qualquer valor positivo deve ir ao topo
+        if benchmark == 0:
+            return 100 if value > 0 else 40
         ratio = value / benchmark if benchmark != 0 else 0
         if ratio >= 1.5:
             return 100
