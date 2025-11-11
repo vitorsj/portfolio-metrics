@@ -42,8 +42,8 @@ COLORS = {
 # -------------------------------
 NAPKIN_BENCHMARKS = {
     'Pre-Seed': {
-        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
-        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+        'low':   {'ARR': 0.0,   'Growth': 0, 'Round Size': 0.460, 'Valuation': 2.750, 'Cap Table': 90, 'Gross Margin': 70},
+        'high':  {'ARR': 0.180, 'Growth': 0, 'Round Size': 0.920, 'Valuation': 6.410, 'Cap Table': 90, 'Gross Margin': 70},
     },
     'Seed': {
         'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
@@ -282,10 +282,20 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
              transform=fig.transFigure, fontsize=16, fontweight='700',
              color=COLORS['deep_ocean'], va='center')
 
-    fig.text(0.5, 0.04,
-             'Napkin Benchmark: ARR $0.64M-$1.83M | Growth 200% | Round $1.46M-$3.66M | Valuation $5.86M-$10.9M | Cap Table 80% | Gross Margin 70%',
-             ha='center', va='center', fontsize=13.5, color=COLORS['marine_blue'],
-             style='italic', transform=fig.transFigure)
+    # Nota de rodapé dinâmica conforme estágio selecionado
+    footnote_text = (
+        f"Napkin Benchmark: ARR ${napkin_low['ARR']}M-${napkin_high['ARR']}M | "
+        f"Growth {int(napkin_low['Growth'])}%"
+        f"{'' if napkin_low['Growth']==napkin_high['Growth'] else f'-{int(napkin_high['Growth'])}%'} | "
+        f"Round ${napkin_low['Round Size']}M-${napkin_high['Round Size']}M | "
+        f"Valuation ${napkin_low['Valuation']}M-${napkin_high['Valuation']}M | "
+        f"Cap Table {int(napkin_low['Cap Table'])}%"
+        f"{'' if napkin_low['Cap Table']==napkin_high['Cap Table'] else f'-{int(napkin_high['Cap Table'])}%'} | "
+        f"Gross Margin {int(napkin_low.get('Gross Margin', 70))}%"
+        f"{'' if napkin_low.get('Gross Margin', 70)==napkin_high.get('Gross Margin', 70) else f'-{int(napkin_high.get('Gross Margin', 70))}%'}"
+    )
+    fig.text(0.5, 0.04, footnote_text, ha='center', va='center', fontsize=13.5,
+             color=COLORS['marine_blue'], style='italic', transform=fig.transFigure)
 
     plt.subplots_adjust(left=0.1, right=0.9, top=0.93, bottom=0.20)
 
