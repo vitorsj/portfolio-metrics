@@ -320,11 +320,11 @@ with c1:
     arr = st.number_input("ARR (em milhões de USD)", min_value=0.0, step=0.1, value=1.1)
     round_size = st.number_input("Round Size (em milhões de USD)", min_value=0.0, step=0.1, value=3.5)
 with c2:
-    growth = st.number_input("Growth (%)", min_value=0.0, step=10.0, value=200.0)
+    growth = st.number_input("Growth (%)", min_value=0.0, step=10.0, value=389.0)
     valuation = st.number_input("Valuation (em milhões de USD)", min_value=0.0, step=0.5, value=13.0)
 with c3:
     cap_table = st.number_input("Cap Table (%)", min_value=0.0, max_value=100.0, step=1.0, value=72.0)
-    gross_margin = st.number_input("Gross Margin (%)", min_value=0.0, max_value=100.0, step=1.0, value=70.0)
+    gross_margin = st.number_input("Gross Margin (%)", min_value=0.0, max_value=100.0, step=1.0, value=82.0)
 
 # Gera o gráfico automaticamente (tempo real) a cada alteração
 startup_metrics = {
