@@ -138,17 +138,12 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 
     for metric in metrics:
         benchmark_mid = (napkin_low[metric] + napkin_high[metric]) / 2
-        if metric == 'Cap Table':
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'percentage')
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'percentage')
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'percentage')
-        else:
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
-                                          low=napkin_low[metric], high=napkin_high[metric])
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
-                                       low=napkin_low[metric], high=napkin_high[metric])
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
-                                        low=napkin_low[metric], high=napkin_high[metric])
+        purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                      low=napkin_low[metric], high=napkin_high[metric])
+        low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                   low=napkin_low[metric], high=napkin_high[metric])
+        high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                    low=napkin_low[metric], high=napkin_high[metric])
 
         # Mantemos escala fixa 0..100 para preservar proporções entre métricas
         purple_normalized.append(min(100, purple_norm))

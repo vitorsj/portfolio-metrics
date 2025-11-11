@@ -112,32 +112,27 @@ def build_figure(
 
     for metric in order:
         benchmark = (napkin_low[metric] + napkin_high[metric]) / 2
-        if metric == "Cap Table":
-            p_val = _normalize_value(startup_metrics[metric], benchmark, "percentage")
-            l_val = _normalize_value(napkin_low[metric], benchmark, "percentage")
-            h_val = _normalize_value(napkin_high[metric], benchmark, "percentage")
-        else:
-            p_val = _normalize_value(
-                startup_metrics[metric],
-                benchmark,
-                "higher_better",
-                low=napkin_low[metric],
-                high=napkin_high[metric],
-            )
-            l_val = _normalize_value(
-                napkin_low[metric],
-                benchmark,
-                "higher_better",
-                low=napkin_low[metric],
-                high=napkin_high[metric],
-            )
-            h_val = _normalize_value(
-                napkin_high[metric],
-                benchmark,
-                "higher_better",
-                low=napkin_low[metric],
-                high=napkin_high[metric],
-            )
+        p_val = _normalize_value(
+            startup_metrics[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
+        l_val = _normalize_value(
+            napkin_low[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
+        h_val = _normalize_value(
+            napkin_high[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
 
         purple_normalized.append(min(100, p_val))
         napkin_low_normalized.append(min(100, l_val))
