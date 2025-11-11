@@ -1,129 +1,15 @@
 import io
 import streamlit as st
-from napkin_plot import build_figure
 
 
-st.set_page_config(page_title="Napkin Radar - Astella", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Astella Napkin - Radar", page_icon="📈", layout="wide")
+st.title("Astella Napkin - Radar")
 
-st.title("Napkin Radar - Astella")
-st.caption("Ajuste os valores e gere o gráfico radar conforme o benchmark Napkin.")
-
-# Valores padrão (iguais aos do script original)
-DEFAULT_PURPLE = {
-    "ARR": 1.1,            # $M
-    "Growth": 389,         # %
-    "Round Size": 3.5,     # $M
-    "Valuation": 13.0,     # $M
-    "Cap Table": 72,       # %
-    "Gross Margin": 82,    # %
-}
-
-DEFAULT_LOW = {
-    "ARR": 0.64,
-    "Growth": 200,
-    "Round Size": 1.46,
-    "Valuation": 5.86,
-    "Cap Table": 80,
-    "Gross Margin": 70,
-}
-
-DEFAULT_HIGH = {
-    "ARR": 1.83,
-    "Growth": 200,
-    "Round Size": 3.66,
-    "Valuation": 10.9,
-    "Cap Table": 80,
-    "Gross Margin": 70,
-}
-
-
-with st.sidebar:
-    st.header("Parâmetros Purple Metrics")
-    arr = st.number_input("ARR (em M$)", value=float(DEFAULT_PURPLE["ARR"]), step=0.05, format="%.2f", min_value=0.0)
-    growth = st.number_input("Growth (%)", value=int(DEFAULT_PURPLE["Growth"]), step=5, min_value=0, max_value=10000)
-    round_size = st.number_input("Round Size (em M$)", value=float(DEFAULT_PURPLE["Round Size"]), step=0.1, format="%.2f", min_value=0.0)
-    valuation = st.number_input("Valuation (em M$)", value=float(DEFAULT_PURPLE["Valuation"]), step=0.5, format="%.2f", min_value=0.0)
-    cap_table = st.number_input("Cap Table (%)", value=int(DEFAULT_PURPLE["Cap Table"]), step=1, min_value=0, max_value=100)
-    gross_margin = st.number_input("Gross Margin (%)", value=int(DEFAULT_PURPLE["Gross Margin"]), step=1, min_value=0, max_value=100)
-
-    st.markdown("---")
-    with st.expander("Ajustar Napkin Benchmarks (opcional)"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("Napkin Low")
-            low_arr = st.number_input("Low ARR (M$)", value=float(DEFAULT_LOW["ARR"]), step=0.05, key="low_arr")
-            low_growth = st.number_input("Low Growth (%)", value=int(DEFAULT_LOW["Growth"]), step=5, key="low_growth")
-            low_round = st.number_input("Low Round Size (M$)", value=float(DEFAULT_LOW["Round Size"]), step=0.05, key="low_round")
-            low_valuation = st.number_input("Low Valuation (M$)", value=float(DEFAULT_LOW["Valuation"]), step=0.05, key="low_valuation")
-            low_cap_table = st.number_input("Low Cap Table (%)", value=int(DEFAULT_LOW["Cap Table"]), step=1, min_value=0, max_value=100, key="low_cap_table")
-            low_gm = st.number_input("Low Gross Margin (%)", value=int(DEFAULT_LOW["Gross Margin"]), step=1, min_value=0, max_value=100, key="low_gm")
-        with col2:
-            st.subheader("Napkin High")
-            high_arr = st.number_input("High ARR (M$)", value=float(DEFAULT_HIGH["ARR"]), step=0.05, key="high_arr")
-            high_growth = st.number_input("High Growth (%)", value=int(DEFAULT_HIGH["Growth"]), step=5, key="high_growth")
-            high_round = st.number_input("High Round Size (M$)", value=float(DEFAULT_HIGH["Round Size"]), step=0.05, key="high_round")
-            high_valuation = st.number_input("High Valuation (M$)", value=float(DEFAULT_HIGH["Valuation"]), step=0.05, key="high_valuation")
-            high_cap_table = st.number_input("High Cap Table (%)", value=int(DEFAULT_HIGH["Cap Table"]), step=1, min_value=0, max_value=100, key="high_cap_table")
-            high_gm = st.number_input("High Gross Margin (%)", value=int(DEFAULT_HIGH["Gross Margin"]), step=1, min_value=0, max_value=100, key="high_gm")
-
-    st.markdown("---")
-    generate = st.button("Gerar gráfico")
-
-# Monta dicionários a partir dos inputs
-purple = {
-    "ARR": float(arr),
-    "Growth": int(growth),
-    "Round Size": float(round_size),
-    "Valuation": float(valuation),
-    "Cap Table": int(cap_table),
-    "Gross Margin": int(gross_margin),
-}
-
-low = {
-    "ARR": float(st.session_state.get("low_arr", DEFAULT_LOW["ARR"])),
-    "Growth": int(st.session_state.get("low_growth", DEFAULT_LOW["Growth"])),
-    "Round Size": float(st.session_state.get("low_round", DEFAULT_LOW["Round Size"])),
-    "Valuation": float(st.session_state.get("low_valuation", DEFAULT_LOW["Valuation"])),
-    "Cap Table": int(st.session_state.get("low_cap_table", DEFAULT_LOW["Cap Table"])),
-    "Gross Margin": int(st.session_state.get("low_gm", DEFAULT_LOW["Gross Margin"])),
-}
-
-high = {
-    "ARR": float(st.session_state.get("high_arr", DEFAULT_HIGH["ARR"])),
-    "Growth": int(st.session_state.get("high_growth", DEFAULT_HIGH["Growth"])),
-    "Round Size": float(st.session_state.get("high_round", DEFAULT_HIGH["Round Size"])),
-    "Valuation": float(st.session_state.get("high_valuation", DEFAULT_HIGH["Valuation"])),
-    "Cap Table": int(st.session_state.get("high_cap_table", DEFAULT_HIGH["Cap Table"])),
-    "Gross Margin": int(st.session_state.get("high_gm", DEFAULT_HIGH["Gross Margin"])),
-}
-
-
-placeholder = st.empty()
-download_col, _ = st.columns([1, 3])
-
-if generate:
-    fig = build_figure(purple, low, high)
-    with placeholder:
-        st.pyplot(fig, use_container_width=True)
-
-    # Download como PNG
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none", pad_inches=0.3)
-    buf.seek(0)
-    with download_col:
-        st.download_button(
-            label="Baixar PNG",
-            data=buf,
-            file_name="purple_metrics_radar_astella.png",
-            mime="image/png",
-        )
-else:
-    st.info("Configure os parâmetros na esquerda e clique em “Gerar gráfico”.")
+#
 
 import io
 import numpy as np
 import matplotlib.pyplot as plt
-import streamlit as st
 
 
 # -------------------------------
@@ -152,24 +38,25 @@ COLORS = {
 
 
 # -------------------------------
-# Benchmarks do Napkin (fixos)
+# Benchmarks do Napkin por estágio
 # -------------------------------
-napkin_low = {
-    'ARR': 0.64,
-    'Growth': 200,
-    'Round Size': 1.46,
-    'Valuation': 5.86,
-    'Cap Table': 80,
-    'Gross Margin': 70,
-}
-
-napkin_high = {
-    'ARR': 1.83,
-    'Growth': 200,
-    'Round Size': 3.66,
-    'Valuation': 10.9,
-    'Cap Table': 80,
-    'Gross Margin': 70,
+NAPKIN_BENCHMARKS = {
+    'Pre-Seed': {
+        'low':   {'ARR': 0.0,   'Growth': 0, 'Round Size': 0.460, 'Valuation': 2.750, 'Cap Table': 90, 'Gross Margin': 70},
+        'high':  {'ARR': 0.180, 'Growth': 0, 'Round Size': 0.920, 'Valuation': 6.410, 'Cap Table': 90, 'Gross Margin': 70},
+    },
+    'Seed': {
+        'low':   {'ARR': 0.64, 'Growth': 200, 'Round Size': 1.46, 'Valuation': 5.86, 'Cap Table': 80, 'Gross Margin': 70},
+        'high':  {'ARR': 1.83, 'Growth': 200, 'Round Size': 3.66, 'Valuation': 10.9, 'Cap Table': 80, 'Gross Margin': 70},
+    },
+    'Series A': {
+        'low':   {'ARR': 3.300, 'Growth': 150, 'Round Size': 4.580, 'Valuation': 13.730, 'Cap Table': 65, 'Gross Margin': 70},
+        'high':  {'ARR': 5.490, 'Growth': 150, 'Round Size': 9.150, 'Valuation': 36.620, 'Cap Table': 65, 'Gross Margin': 70},
+    },
+    'Series B': {
+        'low':   {'ARR': 9.150, 'Growth': 100, 'Round Size': 13.730, 'Valuation': 45.700, 'Cap Table': 50, 'Gross Margin': 70},
+        'high':  {'ARR': 36.620, 'Growth': 100, 'Round Size': 27.450, 'Valuation': 91.550, 'Cap Table': 50, 'Gross Margin': 70},
+    },
 }
 
 metrics = ['ARR', 'Growth', 'Round Size', 'Cap Table', 'Valuation', 'Gross Margin']
@@ -179,21 +66,57 @@ metric_labels = ['ARR', 'Growth', 'Round Size', 'Cap Table', 'Valuation', 'Gross
 # -------------------------------
 # Normalização e utilitários
 # -------------------------------
-def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_better') -> float:
+def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_better',
+                    low: float | None = None, high: float | None = None,
+                    axis_min: float | None = None, axis_max: float | None = None,
+                    per_metric_scale: bool = False) -> float:
     """
-    Normaliza valores para escala 0-100.
-    Para métricas 'higher_better', 70 é a referência (benchmark médio).
+    Normaliza valores para escala 0-100 usando a faixa Napkin:
+    - Low -> ~60; High -> ~80; abaixo de Low mapeia para [40,60), acima de High para (80,100] com compressão log.
+    Mantém escala fixa 0-100 para não distorcer outras métricas.
     """
-    if metric_type == 'higher_better':
-        ratio = value / benchmark if benchmark != 0 else 0
-        if ratio >= 1.5:
-            return 100
-        elif ratio <= 0.5:
-            return 40
-        else:
-            return 40 + (ratio - 0.5) * 60
-    else:
+    if metric_type != 'higher_better':
         return (value / benchmark) * 100 if benchmark != 0 else 0
+
+    # Modo 1: escala dinâmica por métrica (usa min/max do eixo)
+    if per_metric_scale and axis_min is not None and axis_max is not None:
+        if axis_max <= axis_min:
+            return 70.0  # caso degenerado
+        ratio = (float(value) - float(axis_min)) / (float(axis_max) - float(axis_min))
+        return float(np.clip(40 + 60 * ratio, 40, 100))
+
+    # Salvaguardas
+    low_val = 0.0 if low is None else float(low)
+    high_val = benchmark if high is None else float(high)
+    # Caso low==high: tratar como banda ancorada em 0 para evitar distorção (ex.: percentuais)
+    if low is not None and high is not None and float(low) == float(high):
+        low_val = 0.0
+        high_val = float(high)
+
+    # Caso degenerado: sem banda (ex.: Growth Pre-Seed com low==high==0)
+    if high_val <= 0:
+        return 100 if value > 0 else 40
+
+    # Se low==0, use high como referência da banda [40..80]
+    if low_val <= 0:
+        if value <= 0:
+            return 40
+        if value <= high_val:
+            # 0 -> 40 ; high -> 80
+            return 40 + 40 * (value / high_val)
+        # Acima do high: 80..100 com compressão log
+        over = value / high_val
+        return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))  # 10x -> ~100
+
+    # Faixa regular: abaixo de low
+    if value <= low_val:
+        return 40 + 20 * (max(value, 0.0) / low_val)
+    # Entre low e high
+    if value < high_val:
+        return 60 + 20 * ((value - low_val) / (high_val - low_val))
+    # Acima de high: compressão log até 100
+    over = value / high_val
+    return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
 
 
 def check_label_overlap(purple_value: float, napkin_value: float, threshold: float = 12):
@@ -228,15 +151,24 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 
     for metric in metrics:
         benchmark_mid = (napkin_low[metric] + napkin_high[metric]) / 2
-        if metric == 'Cap Table':
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'percentage')
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'percentage')
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'percentage')
+        # Escala dinâmica por métrica: eixo [min(napkin_low, startup), max(napkin_high, startup)]
+        if napkin_low[metric] == napkin_high[metric]:
+            axis_min = 0.0
+            axis_max = max(napkin_high[metric], startup_metrics[metric])
         else:
-            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better')
-            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better')
-            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better')
+            axis_min = min(napkin_low[metric], startup_metrics[metric])
+            axis_max = max(napkin_high[metric], startup_metrics[metric])
+        purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                      low=napkin_low[metric], high=napkin_high[metric],
+                                      axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                   low=napkin_low[metric], high=napkin_high[metric],
+                                   axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                    low=napkin_low[metric], high=napkin_high[metric],
+                                    axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
 
+        # Mantemos escala fixa 0..100 para preservar proporções entre métricas
         purple_normalized.append(min(100, purple_norm))
         napkin_low_normalized.append(min(100, low_norm))
         napkin_high_normalized.append(min(100, high_norm))
@@ -252,6 +184,7 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
     napkin_high_plot = napkin_high_normalized + [napkin_high_normalized[0]]
     angles += angles[:1]
 
+    # Escala fixa
     ax.set_ylim(0, 100)
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
@@ -395,10 +328,22 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
              transform=fig.transFigure, fontsize=16, fontweight='700',
              color=COLORS['deep_ocean'], va='center')
 
-    fig.text(0.5, 0.04,
-             'Napkin Benchmark: ARR $0.64M-$1.83M | Growth 200% | Round $1.46M-$3.66M | Valuation $5.86M-$10.9M | Cap Table 80% | Gross Margin 70%',
-             ha='center', va='center', fontsize=13.5, color=COLORS['marine_blue'],
-             style='italic', transform=fig.transFigure)
+    # Nota de rodapé dinâmica conforme estágio selecionado (sem f-strings aninhadas)
+    growth_suffix = "" if napkin_low["Growth"] == napkin_high["Growth"] else ("-" + str(int(napkin_high["Growth"])) + "%")
+    cap_suffix = "" if napkin_low["Cap Table"] == napkin_high["Cap Table"] else ("-" + str(int(napkin_high["Cap Table"])) + "%")
+    gm_low = int(napkin_low.get("Gross Margin", 70))
+    gm_high = int(napkin_high.get("Gross Margin", 70))
+    gm_suffix = "" if gm_low == gm_high else ("-" + str(gm_high) + "%")
+    footnote_text = (
+        f"Napkin Benchmark: ARR ${napkin_low['ARR']}M-${napkin_high['ARR']}M | "
+        f"Growth {int(napkin_low['Growth'])}%{growth_suffix} | "
+        f"Round ${napkin_low['Round Size']}M-${napkin_high['Round Size']}M | "
+        f"Valuation ${napkin_low['Valuation']}M-${napkin_high['Valuation']}M | "
+        f"Cap Table {int(napkin_low['Cap Table'])}%{cap_suffix} | "
+        f"Gross Margin {gm_low}%{gm_suffix}"
+    )
+    fig.text(0.5, 0.04, footnote_text, ha='center', va='center', fontsize=13.5,
+             color=COLORS['marine_blue'], style='italic', transform=fig.transFigure)
 
     plt.subplots_adjust(left=0.1, right=0.9, top=0.93, bottom=0.20)
 
@@ -413,32 +358,33 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 # -------------------------------
 # Interface Streamlit
 # -------------------------------
+#
+
+# Destaque: seletor de estágio
 st.markdown(
     f"""
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-      <div style="width:10px;height:26px;border-radius:4px;background:{COLORS['turquoise']}"></div>
-      <h2 style="margin:0;color:{COLORS['deep_ocean']}">Napkin Radar • Astella</h2>
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px 0">
+      <div style="width:10px;height:22px;border-radius:4px;background:{COLORS['turquoise']}"></div>
+      <h3 style="margin:0;color:{COLORS['deep_ocean']}">Estágio da rodada</h3>
     </div>
-    <p style="margin-top:0;color:{COLORS['marine_blue']}">Atualiza em tempo real conforme você altera os dados.</p>
     """,
     unsafe_allow_html=True,
 )
-
-# Layout moderno com duas colunas de entrada e abas para exibição
-c_name, _, _ = st.columns([2, 1, 1])
-with c_name:
-    col_name = st.text_input("Nome da startup", value="Startup")
+stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0, label_visibility="collapsed")
+selected_bench = NAPKIN_BENCHMARKS[stage]
+napkin_low = selected_bench['low']
+napkin_high = selected_bench['high']
 
 c1, c2, c3 = st.columns(3)
 with c1:
     arr = st.number_input("ARR (em milhões de USD)", min_value=0.0, step=0.1, value=1.1)
     round_size = st.number_input("Round Size (em milhões de USD)", min_value=0.0, step=0.1, value=3.5)
 with c2:
-    growth = st.number_input("Growth (%)", min_value=0.0, step=10.0, value=200.0)
+    growth = st.number_input("Growth (%)", min_value=0.0, step=10.0, value=389.0)
     valuation = st.number_input("Valuation (em milhões de USD)", min_value=0.0, step=0.5, value=13.0)
 with c3:
     cap_table = st.number_input("Cap Table (%)", min_value=0.0, max_value=100.0, step=1.0, value=72.0)
-    gross_margin = st.number_input("Gross Margin (%)", min_value=0.0, max_value=100.0, step=1.0, value=70.0)
+    gross_margin = st.number_input("Gross Margin (%)", min_value=0.0, max_value=100.0, step=1.0, value=82.0)
 
 # Gera o gráfico automaticamente (tempo real) a cada alteração
 startup_metrics = {
@@ -450,7 +396,7 @@ startup_metrics = {
     'Gross Margin': float(gross_margin),
 }
 
-fig, buffer = generate_radar_chart(startup_metrics, startup_name=col_name or "Startup")
+fig, buffer = generate_radar_chart(startup_metrics, startup_name="Startup")
 
 tab1, tab2 = st.tabs(["Gráfico", "Dados"])
 with tab1:
@@ -458,7 +404,7 @@ with tab1:
     st.download_button(
         label="Baixar gráfico (PNG)",
         data=buffer,
-        file_name=f"napkin_radar_{(col_name or 'startup').lower().replace(' ', '_')}.png",
+        file_name="napkin_radar_startup.png",
         mime="image/png"
     )
 with tab2:

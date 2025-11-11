@@ -30,21 +30,45 @@ plt.rcParams["font.sans-serif"] = [
 ]
 
 
-def _normalize_value(value: float, benchmark: float, metric_type: str = "higher_better") -> float:
+def _normalize_value(
+    value: float,
+    benchmark: float,
+    metric_type: str = "higher_better",
+    *,
+    low: float | None = None,
+    high: float | None = None,
+) -> float:
     """
-    Normaliza valores para escala 0-100.
-    Regra: o benchmark sempre recebe score 70 (referência média).
+    Normaliza valores 0-100 usando a faixa Napkin:
+    - Low -> ~60; High -> ~80; abaixo de Low em [40,60), acima de High em (80,100] com compressão log.
     """
-    if metric_type == "higher_better":
-        ratio = value / benchmark if benchmark != 0 else 0
-        if ratio >= 1.5:
-            return 100
-        elif ratio <= 0.5:
-            return 40
-        else:
-            return 40 + (ratio - 0.5) * 60
-    else:
+    if metric_type != "higher_better":
         return (value / benchmark) * 100 if benchmark != 0 else 0
+
+    low_val = 0.0 if low is None else float(low)
+    high_val = benchmark if high is None else float(high)
+    # Caso low==high: ancorar a 0 para evitar distorção (ex.: percentuais)
+    if low is not None and high is not None and float(low) == float(high):
+        low_val = 0.0
+        high_val = float(high)
+
+    if high_val <= 0:
+        return 100 if value > 0 else 40
+
+    if low_val <= 0:
+        if value <= 0:
+            return 40
+        if value <= high_val:
+            return 40 + 40 * (value / high_val)
+        over = value / high_val
+        return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
+
+    if value <= low_val:
+        return 40 + 20 * (max(value, 0.0) / low_val)
+    if value < high_val:
+        return 60 + 20 * ((value - low_val) / (high_val - low_val))
+    over = value / high_val
+    return min(100, 80 + 20 * (np.log1p(over - 1) / np.log1p(9)))
 
 
 def _check_label_overlap(purple_value: float, napkin_value: float, threshold: float = 12):
@@ -72,11 +96,12 @@ DEFAULT_METRIC_ORDER = ["ARR", "Growth", "Round Size", "Cap Table", "Valuation",
 
 
 def build_figure(
-    purple_metrics: dict,
+    startup_metrics: dict,
     napkin_low: dict,
     napkin_high: dict,
     *,
     metric_order: list | None = None,
+    startup_name: str = "Startup",
 ) -> Figure:
     """
     Constrói e retorna a Figure do gráfico radar no tema Astella.
@@ -91,14 +116,27 @@ def build_figure(
 
     for metric in order:
         benchmark = (napkin_low[metric] + napkin_high[metric]) / 2
-        if metric == "Cap Table":
-            p_val = _normalize_value(purple_metrics[metric], benchmark, "percentage")
-            l_val = _normalize_value(napkin_low[metric], benchmark, "percentage")
-            h_val = _normalize_value(napkin_high[metric], benchmark, "percentage")
-        else:
-            p_val = _normalize_value(purple_metrics[metric], benchmark, "higher_better")
-            l_val = _normalize_value(napkin_low[metric], benchmark, "higher_better")
-            h_val = _normalize_value(napkin_high[metric], benchmark, "higher_better")
+        p_val = _normalize_value(
+            startup_metrics[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
+        l_val = _normalize_value(
+            napkin_low[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
+        h_val = _normalize_value(
+            napkin_high[metric],
+            benchmark,
+            "higher_better",
+            low=napkin_low[metric],
+            high=napkin_high[metric],
+        )
 
         purple_normalized.append(min(100, p_val))
         napkin_low_normalized.append(min(100, l_val))
@@ -248,17 +286,17 @@ def build_figure(
         ax.plot(angle, value, "o", color=COLORS["turquoise"], markersize=18, alpha=0.35, zorder=4.5)
 
         if metric == "ARR":
-            label_text = f'${purple_metrics["ARR"]}M'
+            label_text = f'${startup_metrics["ARR"]}M'
         elif metric == "Growth":
-            label_text = f'{purple_metrics["Growth"]}%'
+            label_text = f'{startup_metrics["Growth"]}%'
         elif metric == "Round Size":
-            label_text = f'${purple_metrics["Round Size"]}M'
+            label_text = f'${startup_metrics["Round Size"]}M'
         elif metric == "Valuation":
-            label_text = f'${purple_metrics["Valuation"]}M'
+            label_text = f'${startup_metrics["Valuation"]}M'
         elif metric == "Cap Table":
-            label_text = f'{purple_metrics["Cap Table"]}%'
+            label_text = f'{startup_metrics["Cap Table"]}%'
         else:
-            label_text = f'{int(purple_metrics["Gross Margin"])}%'
+            label_text = f'{int(startup_metrics["Gross Margin"])}%'
 
         ax.text(
             angle,
@@ -313,7 +351,7 @@ def build_figure(
     legend_y = 0.09
     legend_x_start = 0.18
 
-    # Purple Metrics
+    # Série principal (Startup)
     fig.patches.append(
         plt.Rectangle(
             (legend_x_start, legend_y),
@@ -328,7 +366,7 @@ def build_figure(
     fig.text(
         legend_x_start + 0.035,
         legend_y + 0.006,
-        "Purple Metrics",
+        f"{startup_name} Metrics",
         transform=fig.transFigure,
         fontsize=16,
         fontweight="700",

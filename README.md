@@ -12,7 +12,7 @@ pinned: false
 
 # Napkin Radar - Astella (Hugging Face Spaces)
 
-Aplicação Streamlit que gera um gráfico radar com o tema Astella, comparando métricas “Purple Metrics” com a faixa de benchmark Napkin (Low/High). O app permite ajustar as métricas e baixar o PNG do gráfico.
+Aplicação Streamlit que gera um gráfico radar com o tema Astella, comparando métricas da sua startup com a faixa de benchmark Napkin (Low/High). O app permite ajustar as métricas, informar o nome da startup e baixar o PNG do gráfico.
 
 ## Executar localmente
 
