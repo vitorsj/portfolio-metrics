@@ -4,8 +4,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Napkin Radar - Astella", page_icon="📈", layout="wide")
 
-st.title("Napkin Radar - Astella")
-st.caption("Defina os dados da sua startup e visualize a comparação com o benchmark Napkin.")
+#
 
 import io
 import numpy as np
@@ -358,16 +357,7 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 # -------------------------------
 # Interface Streamlit
 # -------------------------------
-st.markdown(
-    f"""
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-      <div style="width:10px;height:26px;border-radius:4px;background:{COLORS['turquoise']}"></div>
-      <h2 style="margin:0;color:{COLORS['deep_ocean']}">Napkin Radar • Astella</h2>
-    </div>
-    <p style="margin-top:0;color:{COLORS['marine_blue']}">Atualiza em tempo real conforme você altera os dados.</p>
-    """,
-    unsafe_allow_html=True,
-)
+#
 
 # Destaque: seletor de estágio
 st.markdown(
