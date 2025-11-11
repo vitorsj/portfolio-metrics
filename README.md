@@ -1,3 +1,14 @@
+---
+title: Napkin Radar - Astella
+emoji: 📈
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: "1.40.1"
+app_file: app.py
+pinned: false
+---
+
 # Napkin Radar - Astella (Hugging Face Spaces)
 
 Aplicação Streamlit que gera um gráfico radar com o tema Astella, comparando métricas “Purple Metrics” com a faixa de benchmark Napkin (Low/High). O app permite ajustar as métricas e baixar o PNG do gráfico.
@@ -76,5 +87,6 @@ Se preferir não conectar ao GitHub:
 ## Observações
 
 - As fontes do Matplotlib usam fallback caso a fonte desejada não esteja disponível no ambiente do Space.
+
 
 
