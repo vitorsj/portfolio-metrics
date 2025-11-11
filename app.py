@@ -282,17 +282,19 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
              transform=fig.transFigure, fontsize=16, fontweight='700',
              color=COLORS['deep_ocean'], va='center')
 
-    # Nota de rodapé dinâmica conforme estágio selecionado
+    # Nota de rodapé dinâmica conforme estágio selecionado (sem f-strings aninhadas)
+    growth_suffix = "" if napkin_low["Growth"] == napkin_high["Growth"] else ("-" + str(int(napkin_high["Growth"])) + "%")
+    cap_suffix = "" if napkin_low["Cap Table"] == napkin_high["Cap Table"] else ("-" + str(int(napkin_high["Cap Table"])) + "%")
+    gm_low = int(napkin_low.get("Gross Margin", 70))
+    gm_high = int(napkin_high.get("Gross Margin", 70))
+    gm_suffix = "" if gm_low == gm_high else ("-" + str(gm_high) + "%")
     footnote_text = (
         f"Napkin Benchmark: ARR ${napkin_low['ARR']}M-${napkin_high['ARR']}M | "
-        f"Growth {int(napkin_low['Growth'])}%"
-        f"{'' if napkin_low['Growth']==napkin_high['Growth'] else f'-{int(napkin_high['Growth'])}%'} | "
+        f"Growth {int(napkin_low['Growth'])}%{growth_suffix} | "
         f"Round ${napkin_low['Round Size']}M-${napkin_high['Round Size']}M | "
         f"Valuation ${napkin_low['Valuation']}M-${napkin_high['Valuation']}M | "
-        f"Cap Table {int(napkin_low['Cap Table'])}%"
-        f"{'' if napkin_low['Cap Table']==napkin_high['Cap Table'] else f'-{int(napkin_high['Cap Table'])}%'} | "
-        f"Gross Margin {int(napkin_low.get('Gross Margin', 70))}%"
-        f"{'' if napkin_low.get('Gross Margin', 70)==napkin_high.get('Gross Margin', 70) else f'-{int(napkin_high.get('Gross Margin', 70))}%'}"
+        f"Cap Table {int(napkin_low['Cap Table'])}%{cap_suffix} | "
+        f"Gross Margin {gm_low}%{gm_suffix}"
     )
     fig.text(0.5, 0.04, footnote_text, ha='center', va='center', fontsize=13.5,
              color=COLORS['marine_blue'], style='italic', transform=fig.transFigure)
