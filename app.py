@@ -67,7 +67,9 @@ metric_labels = ['ARR', 'Growth', 'Round Size', 'Cap Table', 'Valuation', 'Gross
 # Normalização e utilitários
 # -------------------------------
 def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_better',
-                    low: float | None = None, high: float | None = None) -> float:
+                    low: float | None = None, high: float | None = None,
+                    axis_min: float | None = None, axis_max: float | None = None,
+                    per_metric_scale: bool = False) -> float:
     """
     Normaliza valores para escala 0-100 usando a faixa Napkin:
     - Low -> ~60; High -> ~80; abaixo de Low mapeia para [40,60), acima de High para (80,100] com compressão log.
@@ -75,6 +77,13 @@ def normalize_value(value: float, benchmark: float, metric_type: str = 'higher_b
     """
     if metric_type != 'higher_better':
         return (value / benchmark) * 100 if benchmark != 0 else 0
+
+    # Modo 1: escala dinâmica por métrica (usa min/max do eixo)
+    if per_metric_scale and axis_min is not None and axis_max is not None:
+        if axis_max <= axis_min:
+            return 70.0  # caso degenerado
+        ratio = (float(value) - float(axis_min)) / (float(axis_max) - float(axis_min))
+        return float(np.clip(40 + 60 * ratio, 40, 100))
 
     # Salvaguardas
     low_val = 0.0 if low is None else float(low)
@@ -138,12 +147,29 @@ def generate_radar_chart(startup_metrics: dict, startup_name: str = "Startup"):
 
     for metric in metrics:
         benchmark_mid = (napkin_low[metric] + napkin_high[metric]) / 2
-        purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
-                                      low=napkin_low[metric], high=napkin_high[metric])
-        low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
-                                   low=napkin_low[metric], high=napkin_high[metric])
-        high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
-                                    low=napkin_low[metric], high=napkin_high[metric])
+        if per_metric_scale:
+            # Escala dinâmica por métrica: eixo [min(napkin_low, startup), max(napkin_high, startup)]
+            axis_min = min(napkin_low[metric], startup_metrics[metric])
+            axis_max = max(napkin_high[metric], startup_metrics[metric])
+            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                          low=napkin_low[metric], high=napkin_high[metric],
+                                          axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                       low=napkin_low[metric], high=napkin_high[metric],
+                                       axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                        low=napkin_low[metric], high=napkin_high[metric],
+                                        axis_min=axis_min, axis_max=axis_max, per_metric_scale=True)
+        else:
+            purple_norm = normalize_value(startup_metrics[metric], benchmark_mid, 'higher_better',
+                                          low=napkin_low[metric], high=napkin_high[metric],
+                                          per_metric_scale=False)
+            low_norm = normalize_value(napkin_low[metric], benchmark_mid, 'higher_better',
+                                       low=napkin_low[metric], high=napkin_high[metric],
+                                       per_metric_scale=False)
+            high_norm = normalize_value(napkin_high[metric], benchmark_mid, 'higher_better',
+                                        low=napkin_low[metric], high=napkin_high[metric],
+                                        per_metric_scale=False)
 
         # Mantemos escala fixa 0..100 para preservar proporções entre métricas
         purple_normalized.append(min(100, purple_norm))
@@ -347,11 +373,15 @@ st.markdown(
 )
 
 # Layout: nome da startup, estágio e inputs
-c_name, c_stage, _ = st.columns([2, 1.3, 0.7])
+c_name, c_stage, c_scale = st.columns([2, 1.1, 0.9])
 with c_name:
     col_name = st.text_input("Nome da startup", value="Startup")
 with c_stage:
     stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0)
+with c_scale:
+    st.write("")  # spacing
+    st.write("")  # spacing
+    per_metric_scale = st.checkbox("Escala por métrica", value=True, help="Cada métrica usa seu próprio min/max (Napkin vs Startup).")
 selected_bench = NAPKIN_BENCHMARKS[stage]
 napkin_low = selected_bench['low']
 napkin_high = selected_bench['high']
