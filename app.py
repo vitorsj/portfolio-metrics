@@ -2,7 +2,8 @@ import io
 import streamlit as st
 
 
-st.set_page_config(page_title="Napkin Radar - Astella", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Astella Napkin - Radar", page_icon="📈", layout="wide")
+st.title("Astella Napkin - Radar")
 
 #
 
