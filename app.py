@@ -369,12 +369,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Layout: nome da startup, estágio e inputs
-c_name, c_stage = st.columns([2, 1.1])
-with c_name:
-    col_name = st.text_input("Nome da startup", value="Startup")
-with c_stage:
-    stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0)
+# Destaque: seletor de estágio
+st.markdown(
+    f"""
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px 0">
+      <div style="width:10px;height:22px;border-radius:4px;background:{COLORS['turquoise']}"></div>
+      <h3 style="margin:0;color:{COLORS['deep_ocean']}">Estágio da rodada</h3>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+stage = st.selectbox("Estágio da rodada", options=["Seed", "Pre-Seed", "Series A", "Series B"], index=0, label_visibility="collapsed")
 selected_bench = NAPKIN_BENCHMARKS[stage]
 napkin_low = selected_bench['low']
 napkin_high = selected_bench['high']
@@ -400,7 +405,7 @@ startup_metrics = {
     'Gross Margin': float(gross_margin),
 }
 
-fig, buffer = generate_radar_chart(startup_metrics, startup_name=col_name or "Startup")
+fig, buffer = generate_radar_chart(startup_metrics, startup_name="Startup")
 
 tab1, tab2 = st.tabs(["Gráfico", "Dados"])
 with tab1:
@@ -408,7 +413,7 @@ with tab1:
     st.download_button(
         label="Baixar gráfico (PNG)",
         data=buffer,
-        file_name=f"napkin_radar_{(col_name or 'startup').lower().replace(' ', '_')}.png",
+        file_name="napkin_radar_startup.png",
         mime="image/png"
     )
 with tab2:
